@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# from routers import translation # Will be added later
+from routers import translation
 
 app = FastAPI(title="Mina Speech-to-Speech API", version="0.1.0")
 
@@ -18,6 +18,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(translation.router)
 
 @app.get("/")
 async def root():
