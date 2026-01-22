@@ -2,23 +2,53 @@ import React, { useState } from 'react';
 import LanguageSelector from './components/LanguageSelector';
 import AudioRecorder from './components/AudioRecorder';
 
+// Placeholder for the actual backend API call
+// In a real application, this would be an API utility function
+const translateAudio = async (audioBlob, sourceLang, targetLang) => {
+  console.log(`Translating from ${sourceLang} to ${targetLang}`);
+  console.log("Audio Blob:", audioBlob);
+
+  // Simulate API call
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({
+        translation_text: "Ceci est une traduction simulée depuis l'audio source. L'intégration réelle viendra bientôt.",
+        audio_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" // Example audio URL
+      });
+    }, 2000);
+  });
+};
+
 function App() {
   const [sourceLang, setSourceLang] = useState('ewe');
   const [targetLang, setTargetLang] = useState('fr');
   const [sourceAudio, setSourceAudio] = useState(null);
   const [translatedText, setTranslatedText] = useState('');
+  const [translatedAudio, setTranslatedAudio] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Mock processing function
+  // Handle translation via Backend API
   const handleRecordingComplete = async (audioBlob) => {
     setSourceAudio(URL.createObjectURL(audioBlob));
     setIsProcessing(true);
+    setTranslatedText(""); 
+    setTranslatedAudio(null);
 
-    // Simulate backend delay
-    setTimeout(() => {
+    try {
+      const result = await translateAudio(audioBlob, sourceLang, targetLang);
+      setTranslatedText(result.translation_text);
+      if (result.audio_url) {
+        setTranslatedAudio(result.audio_url);
+        // Auto-play
+        const audio = new Audio(result.audio_url);
+        audio.play().catch(e => console.log("Auto-play blocked", e));
+      }
+    } catch (error) {
+      console.error("Translation failed:", error);
+      setTranslatedText("Error during translation. Please check backend.");
+    } finally {
       setIsProcessing(false);
-      setTranslatedText("Ceci est une traduction simulée depuis l'audio source. L'intégration réelle viendra bientôt.");
-    }, 2000);
+    }
   };
 
   return (
@@ -81,26 +111,29 @@ function App() {
               </div>
             ) : null}
 
-            <textarea
+            <textarea 
               readOnly
               className="w-full h-full bg-slate-50 border-none rounded-xl p-6 text-xl text-slate-700 resize-none focus:ring-0"
               placeholder="Translation will appear here..."
               value={translatedText}
             />
-
-            <div className="mt-4 flex justify-between items-center">
-              <button className="flex items-center gap-2 text-slate-500 hover:text-primary font-medium transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
-                Play Audio
-              </button>
-              <button
-                className="btn-primary"
-                onClick={() => alert("Submit to backend logic placeholder")}
-              >
-                Translate
-              </button>
+            
+            <div className="mt-4 flex flex-col gap-2">
+               {translatedAudio && (
+                 <audio controls src={translatedAudio} className="w-full" />
+               )}
+               <div className="flex justify-between items-center">
+                   <button 
+                     className="flex items-center gap-2 text-slate-500 hover:text-primary font-medium transition-colors"
+                     onClick={() => translatedAudio && new Audio(translatedAudio).play()}
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                     </svg>
+                     Replay Audio
+                   </button>
+                   {/* Translate button removed as flow is auto on record stop, or we can keep it for text-only input later */}
+               </div>
             </div>
           </div>
         </div>

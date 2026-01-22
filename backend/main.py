@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import translation
+from backend.routers import translation
 
 app = FastAPI(title="Mina Speech-to-Speech API", version="0.1.0")
 
@@ -11,6 +11,9 @@ origins = [
     "*" # For development simplicity
 ]
 
+from fastapi.staticfiles import StaticFiles
+import os
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -18,6 +21,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Create static dir if not exists
+os.makedirs("static/audio", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(translation.router)
 
